@@ -1,3 +1,4 @@
+from girder_pytest_pyppeteer.vuetify_xpaths import vBtn, vCard
 import pytest
 
 
@@ -11,7 +12,7 @@ async def logged_in_page(webpack_server, page, user, page_login):
     """
     await page_login(page, user)
     await page.goto(webpack_server)
-    login_button = await page.waitForXPath('//button[contains(., "Login")]')
+    login_button = await page.waitForXPath(await vBtn(page, 'Login'))
     await login_button.click()
     return page
 
@@ -34,31 +35,15 @@ async def test_image_lists(logged_in_page, image_factory, user, user_factory):
     # The All Images tab should have both images
     all_images_tab = await logged_in_page.waitForXPath('//a[contains(., "All Images")]')
     await all_images_tab.click()
-    await logged_in_page.waitForXPath(
-        f'//div[@class="v-card__title"][contains(., "{ my_image.name }")]'
-    )
-    await logged_in_page.waitForXPath(
-        f'//div[@class="v-card__subtitle"][contains(., "{ user.username }")]'
-    )
-    await logged_in_page.waitForXPath(
-        f'//div[@class="v-card__title"][contains(., "{ other_image.name }")]'
-    )
-    await logged_in_page.waitForXPath(
-        f'//div[@class="v-card__subtitle"][contains(., "{ other_user.username }")]'
-    )
+    await logged_in_page.waitForXPath(await vCard(logged_in_page, my_image.name))
+    await logged_in_page.waitForXPath(await vCard(logged_in_page, user.username))
+    await logged_in_page.waitForXPath(await vCard(logged_in_page, other_image.name))
+    await logged_in_page.waitForXPath(await vCard(logged_in_page, other_user.username))
 
     # The My Images tab should only have my image
     my_images_tab = await logged_in_page.waitForXPath('//a[contains(., "My Images")]')
     await my_images_tab.click()
-    await logged_in_page.waitForXPath(
-        f'//div[@class="v-card__title"][contains(., "{ my_image.name }")]'
-    )
-    await logged_in_page.waitForXPath(
-        f'//div[@class="v-card__subtitle"][contains(., "{ user.username }")]'
-    )
+    await logged_in_page.waitForXPath(await vCard(logged_in_page, my_image.name))
+    await logged_in_page.waitForXPath(await vCard(logged_in_page, user.username))
     # The other image should be absent
-    assert (
-        await logged_in_page.xpath(
-            f'//div[@class="v-card__title"][contains(., "{ other_image.name }")]'
-        )
-    ) == []
+    assert (await logged_in_page.xpath(await vCard(logged_in_page, other_image.name))) == []
